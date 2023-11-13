@@ -25,6 +25,7 @@ app.get("/auth", (req, res) => {
         client_id: params.client_id,
         response_type: 'code',
         code_challenge: secretWord,
+        redirect_popup: true,
         code_challenge_method: 'plain'
     });
     let url = `https://accounts.faceit.com?${CodeRequestParams.toString()}`;
