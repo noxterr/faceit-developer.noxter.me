@@ -3,20 +3,26 @@
 //Packages and setup
 const express = require('express');
 const bodyParser = require('body-parser');
+const dotenv         = require("dotenv").config();
 const app = express()
 app.use(bodyParser.json())
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
-//Port
-let port = 8080;
 
-//This is code_challenge. It's strongly recommended to use SHA256 (with code_challenge_method:"S256") aprroach but we use Plain text in this example
-let secretWord = 'SecretCode';
+let port = process.env.PORT || 3000 ;
 
-//Global Parameters. You can save it in another place. 
+// This is code_challenge. It's strongly recommended to use SHA256 (with code_challenge_method:"S256") approach but we use Plain text in this example
+// You can use the methods available in crypto.js file, like so:
+/*
+    const code_verified = base64_url_encode(process.env.CODE_VERIFIED)
+    const code_challenge = sha256(code_verified)
+*/
+let code_challenge = 'SecretCode';
+
+//Global Parameters. You can save it in another place.
 //Please visit https://developers.faceit.com/apps in order to obtain this parameters and set up callback url (https://youurdomainhere/route/to/auth/callback)
 let params={
-    client_id: 'insertClientIdHere',
-    clientSecret: "insertClientSecretHere"
+    client_id: process.env.CLIENT_ID,
+    client_secret: process.env.CLIENT_SECRET,
 }
 
 app.get("/auth", (req, res) => {
@@ -24,7 +30,7 @@ app.get("/auth", (req, res) => {
     let CodeRequestParams = new URLSearchParams({
         client_id: params.client_id,
         response_type: 'code',
-        code_challenge: secretWord,
+        code_challenge: code_challenge,
         redirect_popup: true,
         code_challenge_method: 'plain'
     });
@@ -38,7 +44,7 @@ app.get("/auth/callback", async (req, res) => {
     let CodeExchangeParams = new URLSearchParams(Object.assign({
         code: req.query.code,
         grant_type: "authorization_code",
-        code_verifier: secretWord
+        code_verifier: process.env.CODE_VERIFIED // Highly encourage to use the SHA256 approach or at least base64_url_encode (both available in crypto.js file)
     }));
     try {
         let url = `https://api.faceit.com/auth/v1/oauth/token`;
@@ -48,7 +54,7 @@ app.get("/auth/callback", async (req, res) => {
             headers: {
                 "Accept": 'application/json',
                 "Content-Type": 'application/x-www-form-urlencoded;charset=UTF-8',
-                "Authorization": `Basic ${Buffer.from(`${params.client_id}:${params.clientSecret}`).toString('base64')}`
+                "Authorization": `Basic ${Buffer.from(`${params.client_id}:${params.client_secret}`).toString('base64')}`
             },
             body: CodeExchangeParams
         }).then(response => { return response.text() }).then(dataB => {
