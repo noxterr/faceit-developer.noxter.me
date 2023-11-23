@@ -19,7 +19,7 @@ let port = process.env.PORT || 3000 ;
     const code_verified = base64_url_encode(process.env.CODE_VERIFIED)
     const code_challenge = sha256(code_verified)
 */
-let code_challenge = 'SecretCode';
+let code_challenge = process.env.CODE_VERIFIED;
 
 //Global Parameters. You can save it in another place.
 //Please visit https://developers.faceit.com/apps in order to obtain this parameters and set up callback url (https://youurdomainhere/route/to/auth/callback)
